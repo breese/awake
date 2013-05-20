@@ -18,6 +18,9 @@ An example of the use of awake:
 
 void AwakeHandler(const boost::system::error_code& error)
 {
+  // The magic packets have been send, or an error occurred along the way.
+  // Please notice that we do not know if the device has been awoken, and
+  // if so, whether or not it is ready for use.
 }
 
 int main()

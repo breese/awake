@@ -1,11 +1,38 @@
 awake
 =====
 
-Wake-on-LAN with Boost.Asio
+Wake-on-LAN with [Boost.Asio](http://www.boost.org/doc/libs/release/libs/asio/).
 
+Introduction
+------------
 
-Getting started
----------------
+The awake module provides a socket that broadcasts UDP magic packets to wake up
+a sleeping device. Several devices can be awoken concurrently. To increase the
+likelihood of success, several bursts of UDP packets are send within a second.
+
+An example of the use of awake:
+
+```c++
+#include <boost/asio/io_service.hpp>
+#include <aware/socket.hpp>
+
+void AwakeHandler(const boost::system::error_code& error)
+{
+}
+
+int main()
+{
+  boost::asio::io_service io;
+  awake::upd::socket wakeup(io);
+  awake::ud::socket::mac_address_type address; // Must be initialized with the MAC address of the sleeping device
+  wakeup.async_awake(address, AwakeHandler); // Send the Wake-on-LAN packets asynchronously
+  io.run();
+  return 0;
+}
+```
+
+Building awake
+--------------
 
 1. Make sure [CMake](http://cmake.org/) is installed.
 

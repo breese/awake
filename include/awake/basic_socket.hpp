@@ -31,17 +31,20 @@ class basic_socket
     // Constants
     enum
     {
+        // Magic packet sizes
         header_size = 6,
         mac_size = 6,
         mac_count = 16,
-        retry_delay = 300, // milliseconds
+        // Send parameters
         burst_count = 6,
-        retry_count = 3
+        retry_count = 3,
+        retry_delay = 300 // milliseconds
     };
 
 public:
     typedef Protocol protocol_type;
-    typedef boost::array<unsigned char, mac_size> mac_address_type;
+    typedef unsigned char char_type;
+    typedef boost::array<char_type, mac_size> mac_address_type;
 
 private:
     typedef boost::array<unsigned char, header_size + mac_count * mac_size> magic_packet_type;
@@ -49,8 +52,10 @@ private:
     class task
     {
     public:
+        template <typename InputIterator>
         task(boost::asio::io_service& io,
-             const mac_address_type& address);
+             InputIterator first,
+             InputIterator last);
 
         bool next_burst();
         bool next_retry();
@@ -125,7 +130,9 @@ void basic_socket<Protocol>::async_awake(const mac_address_type mac,
                                          BOOST_ASIO_MOVE_ARG(Handler) handler)
 {
     // Create magic packet and pass ownership
-    boost::shared_ptr<task> current_task(new task(socket.get_io_service(), mac));
+    boost::shared_ptr<task> current_task(new task(socket.get_io_service(),
+                                                  mac.begin(),
+                                                  mac.end()));
     async_send_burst(current_task, handler);
 }
 
@@ -195,8 +202,10 @@ void basic_socket<Protocol>::async_retry(boost::shared_ptr<task> current_task,
 }
 
 template <typename Protocol>
+template <typename InputIterator>
 basic_socket<Protocol>::task::task(boost::asio::io_service& io,
-                                   const mac_address_type& address)
+                                   InputIterator first,
+                                   InputIterator last)
     : bursts(burst_count),
       retries(retry_count),
       timer(io)
@@ -205,7 +214,7 @@ basic_socket<Protocol>::task::task(boost::asio::io_service& io,
     std::fill_n(magic_packet.begin(), header_size, 0xFF);
     for (unsigned int i = 0; i < mac_count; ++i)
     {
-        std::copy(address.begin(), address.end(), &magic_packet[header_size + i * mac_size]);
+        std::copy(first, last, &magic_packet[header_size + i * mac_size]);
     }
 }
 

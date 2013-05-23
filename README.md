@@ -50,5 +50,5 @@ Building awake
 4. Run the example (replace 11:22:33:44:55:66 with the MAC address of the sleeping device)
 
    ```bash
-   bin/exawake 11:22:33:44:55:66
+   bin/example1 11:22:33:44:55:66
    ```

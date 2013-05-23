@@ -43,9 +43,12 @@ class basic_socket
         retry_delay = 300 // milliseconds
     };
 
+    typedef boost::asio::ip::udp::socket socket_type;
+
 public:
     typedef Protocol protocol_type;
     typedef unsigned char char_type;
+    typedef socket_type::endpoint_type endpoint_type;
 
 private:
     typedef char_type magic_packet_type[header_size + mac_count * mac_size];
@@ -92,6 +95,10 @@ public:
     void async_awake(SinglePassRange mac,
                      BOOST_ASIO_MOVE_ARG(Handler) handler);
 
+    boost::asio::io_service& get_io_service();
+    endpoint_type local_endpoint() const;
+    endpoint_type local_endpoint(boost::system::error_code&) const;
+
 private:
     template <typename Handler>
     void async_send_burst(boost::shared_ptr<task> current_task,
@@ -108,8 +115,8 @@ private:
                      BOOST_ASIO_MOVE_ARG(Handler) handler);
 
 private:
-    boost::asio::ip::udp::socket socket;
-    boost::asio::ip::udp::endpoint endpoint;
+    socket_type socket;
+    endpoint_type endpoint;
 };
 
 //-----------------------------------------------------------------------------
@@ -135,6 +142,26 @@ void basic_socket<Protocol>::async_awake(SinglePassRange mac,
                                                   boost::begin(mac),
                                                   boost::end(mac)));
     async_send_burst(current_task, handler);
+}
+
+template <typename Protocol>
+boost::asio::io_service& basic_socket<Protocol>::get_io_service()
+{
+    return socket.get_io_service();
+}
+
+template <typename Protocol>
+typename basic_socket<Protocol>::endpoint_type
+basic_socket<Protocol>::local_endpoint() const
+{
+    return socket.local_endpoint();
+}
+
+template <typename Protocol>
+typename basic_socket<Protocol>::endpoint_type
+basic_socket<Protocol>::local_endpoint(boost::system::error_code& error) const
+{
+    return socket.local_endpoint(error);
 }
 
 template <typename Protocol>
@@ -251,7 +278,8 @@ void basic_socket<Protocol>::task::async_wait(BOOST_ASIO_MOVE_ARG(Handler) handl
 }
 
 template <typename Protocol>
-const typename basic_socket<Protocol>::magic_packet_type& basic_socket<Protocol>::task::get_magic_packet() const
+const typename basic_socket<Protocol>::magic_packet_type&
+basic_socket<Protocol>::task::get_magic_packet() const
 {
     return magic_packet;
 }

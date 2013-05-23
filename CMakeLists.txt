@@ -54,11 +54,18 @@ include_directories(BEFORE include)
 # Example
 ###############################################################################
 
-add_executable(exawake
-  example/main.cpp
+add_executable(example1
+  example/example1.cpp
 )
 
-add_dependencies(exawake awake)
-set_target_properties(exawake PROPERTIES RUNTIME_OUTPUT_DIRECTORY bin)
-target_link_libraries(exawake ${EXTRA_LIBS})
+add_dependencies(example1 awake)
+set_target_properties(example1 PROPERTIES RUNTIME_OUTPUT_DIRECTORY bin)
+target_link_libraries(example1 ${EXTRA_LIBS})
 
+add_executable(example2
+  example/example2.cpp
+)
+
+add_dependencies(example2 awake)
+set_target_properties(example2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY bin)
+target_link_libraries(example2 ${EXTRA_LIBS})

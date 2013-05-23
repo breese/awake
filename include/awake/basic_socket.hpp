@@ -13,12 +13,14 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <cassert>
 #include <algorithm>
 #include <vector>
+#include <iterator>
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
-#include <boost/array.hpp>
+#include <boost/range.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/thread_time.hpp>
 
@@ -44,10 +46,9 @@ class basic_socket
 public:
     typedef Protocol protocol_type;
     typedef unsigned char char_type;
-    typedef boost::array<char_type, mac_size> mac_address_type;
 
 private:
-    typedef boost::array<unsigned char, header_size + mac_count * mac_size> magic_packet_type;
+    typedef char_type magic_packet_type[header_size + mac_count * mac_size];
 
     class task
     {
@@ -87,8 +88,8 @@ public:
     //! @code void handler(
     //!   const boost::system::error_code& error // Result of operation
     //! }; @endcode
-    template <typename Handler>
-    void async_awake(const mac_address_type mac,
+    template <typename SinglePassRange, typename Handler>
+    void async_awake(SinglePassRange mac,
                      BOOST_ASIO_MOVE_ARG(Handler) handler);
 
 private:
@@ -125,14 +126,14 @@ basic_socket<Protocol>::basic_socket(boost::asio::io_service& io)
 }
 
 template <typename Protocol>
-template <typename Handler>
-void basic_socket<Protocol>::async_awake(const mac_address_type mac,
+template <typename SinglePassRange, typename Handler>
+void basic_socket<Protocol>::async_awake(SinglePassRange mac,
                                          BOOST_ASIO_MOVE_ARG(Handler) handler)
 {
     // Create magic packet and pass ownership
     boost::shared_ptr<task> current_task(new task(socket.get_io_service(),
-                                                  mac.begin(),
-                                                  mac.end()));
+                                                  boost::begin(mac),
+                                                  boost::end(mac)));
     async_send_burst(current_task, handler);
 }
 
@@ -210,8 +211,9 @@ basic_socket<Protocol>::task::task(boost::asio::io_service& io,
       retries(retry_count),
       timer(io)
 {
+    assert(std::distance(first, last) == mac_size);
     deadline = boost::get_system_time() + boost::posix_time::milliseconds(retry_delay);
-    std::fill_n(magic_packet.begin(), header_size, 0xFF);
+    std::fill_n(magic_packet, header_size, 0xFF);
     for (unsigned int i = 0; i < mac_count; ++i)
     {
         std::copy(first, last, &magic_packet[header_size + i * mac_size]);

@@ -17,17 +17,10 @@ int main(int argc, char *argv[])
     }
     boost::asio::io_service io;
     awake::udp::socket awaker(io);
-    awake::udp::socket::mac_address_type address;
-    boost::array<unsigned int, awake::udp::socket::mac_address_type::static_size> input;
+    boost::array<unsigned int, 6> address;
     if (std::sscanf(argv[1], "%02x:%02x:%02x:%02x:%02x:%02x",
-                    &input[0], &input[1], &input[2], &input[3], &input[4], &input[5]) == address.size())
+                    &address[0], &address[1], &address[2], &address[3], &address[4], &address[5]) == 6)
     {
-        address[0] = input[0] & 0xFF;
-        address[1] = input[1] & 0xFF;
-        address[2] = input[2] & 0xFF;
-        address[3] = input[3] & 0xFF;
-        address[4] = input[4] & 0xFF;
-        address[5] = input[5] & 0xFF;
         awaker.async_awake(address, done);
         io.run();
     }

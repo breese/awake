@@ -90,8 +90,8 @@ public:
     //! @param io The io_service that is serving this socket.
     //! @param endpoint The endpoint to send the UDP magic packets to.
     //! Different devices listens for magic packets on different UDP ports,
-    //! none of which are registered with IANA. Typically port 7, 9, or 2304
-    //! is used.
+    //! none of which are registered with IANA. Typical port numbers used
+    //! are: 7, 9, 2304, 12287, 32767, or 65535.
     basic_socket(boost::asio::io_service& io,
                  endpoint_type endpoint);
 

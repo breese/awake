@@ -80,13 +80,20 @@ private:
 public:
     //! @brief Construct a socket.
     //!
+    //! The endpoint is port 9 on the IPv4 broadcast address.
+    //!
     //! @param io The io_service that is serving this socket.
-    //! @param port The port number to broadcast the UDP magic packets to.
+    basic_socket(boost::asio::io_service& io);
+
+    //! @brief Construct a socket.
+    //!
+    //! @param io The io_service that is serving this socket.
+    //! @param endpoint The endpoint to send the UDP magic packets to.
     //! Different devices listens for magic packets on different UDP ports,
     //! none of which are registered with IANA. Typically port 7, 9, or 2304
     //! is used.
     basic_socket(boost::asio::io_service& io,
-                 unsigned short port = 9);
+                 endpoint_type endpoint);
 
     //! @brief Send wake-up packets.
     //!
@@ -132,12 +139,21 @@ private:
 //-----------------------------------------------------------------------------
 
 template <typename Protocol>
-basic_socket<Protocol>::basic_socket(boost::asio::io_service& io,
-                                     unsigned short port)
+basic_socket<Protocol>::basic_socket(boost::asio::io_service& io)
     : socket(io),
-      endpoint(boost::asio::ip::address_v4::broadcast(), port)
+      endpoint(boost::asio::ip::address_v4::broadcast(), 9)
 {
-    socket.open(boost::asio::ip::udp::v4());
+    socket.open(endpoint.protocol());
+    socket.set_option(boost::asio::socket_base::broadcast(true));
+}
+
+template <typename Protocol>
+basic_socket<Protocol>::basic_socket(boost::asio::io_service& io,
+                                     endpoint_type endpoint)
+    : socket(io),
+      endpoint(endpoint)
+{
+    socket.open(endpoint.protocol());
     socket.set_option(boost::asio::socket_base::broadcast(true));
 }
 

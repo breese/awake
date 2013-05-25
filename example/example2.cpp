@@ -21,7 +21,8 @@ class awaker
 {
 public:
     awaker(boost::asio::io_service& io)
-        : socket(io)
+        : socket(io),
+          endpoint(boost::asio::ip::address_v4::broadcast(), 9)
     {
     }
 
@@ -42,6 +43,7 @@ public:
     }
 
     awake::udp::socket socket;
+    awake::udp::socket::endpoint_type endpoint;
 };
 
 int main(int argc, char *argv[])

@@ -45,12 +45,12 @@ class basic_socket
         retry_delay = 300 // milliseconds
     };
 
-    typedef boost::asio::ip::udp::socket socket_type;
+    typedef typename Protocol::socket socket_type;
 
 public:
     typedef Protocol protocol_type;
     typedef unsigned char char_type;
-    typedef socket_type::endpoint_type endpoint_type;
+    typedef typename socket_type::endpoint_type endpoint_type;
 
 private:
     typedef char_type magic_packet_type[header_size + mac_count * mac_size];

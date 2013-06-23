@@ -20,8 +20,10 @@
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
+#include <boost/ref.hpp>
 #include <boost/range.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/thread/thread_time.hpp>
 
 namespace awake
@@ -163,10 +165,10 @@ void basic_socket<Protocol>::async_awake(SinglePassRange mac,
                                          BOOST_ASIO_MOVE_ARG(Handler) handler)
 {
     // Create magic packet and pass ownership
-    boost::shared_ptr<task> current_task(new task(socket.get_io_service(),
-                                                  boost::begin(mac),
-                                                  boost::end(mac)));
-    async_send_burst(current_task, handler);
+    async_send_burst(boost::make_shared<task>(boost::ref(socket.get_io_service()),
+                                              boost::begin(mac),
+                                              boost::end(mac)),
+                     handler);
 }
 
 template <typename Protocol>

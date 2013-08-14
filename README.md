@@ -14,7 +14,7 @@ An example of the use of awake:
 
 ```c++
 #include <boost/asio/io_service.hpp>
-#include <aware/socket.hpp>
+#include <awake/socket.hpp>
 
 void AwakeHandler(const boost::system::error_code& error)
 {

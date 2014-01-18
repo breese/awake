@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     }
     catch (...)
     {
-        std::cerr << "Error" <<std::endl;
+        std::cerr << "Error" << std::endl;
     }
     return EXIT_FAILURE;
 }

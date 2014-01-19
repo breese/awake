@@ -31,7 +31,7 @@ set(EXECUTABLE_OUTPUT_PATH ${AWAKE_BUILD_DIR}/bin)
 ###############################################################################
 
 # FIXME: Probably ok to use older versions
-find_package(Boost 1.49.0 COMPONENTS system)
+find_package(Boost 1.49.0 COMPONENTS chrono system)
 if (NOT ${Boost_FOUND})
   message(FATAL_ERROR "Boost not found (or too old)")
 endif()

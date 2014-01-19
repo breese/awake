@@ -18,13 +18,14 @@
 #include <vector>
 #include <iterator>
 #include <boost/asio.hpp>
+#include <boost/asio/system_timer.hpp>
+#include <boost/chrono/duration.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
 #include <boost/range.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/thread/thread_time.hpp>
 
 namespace awake
 {
@@ -46,6 +47,7 @@ class basic_socket
     };
 
     typedef typename Protocol::socket socket_type;
+    typedef typename boost::asio::system_timer timer_type;
 
 public:
     typedef Protocol protocol_type;
@@ -78,8 +80,8 @@ private:
         unsigned int bursts;
         unsigned int retries;
         magic_packet_type magic_packet;
-        boost::asio::deadline_timer timer;
-        boost::posix_time::ptime deadline;
+        timer_type timer;
+        timer_type::time_point deadline;
     };
 
 public:
@@ -278,7 +280,7 @@ basic_socket<Protocol>::task::task(boost::asio::io_service& io,
       timer(io)
 {
     assert(std::distance(first, last) == mac_size);
-    deadline = boost::get_system_time() + boost::posix_time::milliseconds(retry_delay);
+    deadline = timer_type::clock_type::now() + boost::chrono::milliseconds(retry_delay);
     std::fill(&magic_packet[0], &magic_packet[header_size], char_type(0xFF));
     for (unsigned int i = 0; i < mac_count; ++i)
     {
@@ -305,7 +307,7 @@ template <typename Protocol>
 bool basic_socket<Protocol>::task::next_deadline(boost::system::error_code& error)
 {
     timer.expires_at(deadline, error);
-    deadline += boost::posix_time::milliseconds(retry_delay);
+    deadline += boost::chrono::milliseconds(retry_delay);
     return !error;
 }
 

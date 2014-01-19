@@ -10,8 +10,14 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#if defined(WIN32)
+#include <tchar.h>
+#endif
+
+#include <cstdlib>
 #include <iostream>
 #include <cstdio> // std::sscanf
+#include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/bind/protect.hpp>
 #include <boost/asio.hpp>
@@ -26,11 +32,22 @@ public:
     {
     }
 
+#if defined(WIN32)
+    void async_awake(const _TCHAR *input)
+#else
     void async_awake(const char *input)
+#endif
     {
         boost::array<unsigned int, 6> address;
+#if defined(WIN32)
+        std::_stscanf(input, _T("%02x:%02x:%02x:%02x:%02x:%02x"),
+                    &address[0], &address[1], &address[2], 
+                    &address[3], &address[4], &address[5]);
+#else
         std::sscanf(input, "%02x:%02x:%02x:%02x:%02x:%02x",
-                    &address[0], &address[1], &address[2], &address[3], &address[4], &address[5]);
+                    &address[0], &address[1], &address[2], 
+                    &address[3], &address[4], &address[5]);
+#endif
         socket.async_awake(address,
                            boost::protect(boost::bind(&awaker::process_awake,
                                                       this,
@@ -46,17 +63,29 @@ public:
     awake::udp::socket::endpoint_type endpoint;
 };
 
+#if defined(WIN32)
+int _tmain(int argc, _TCHAR *argv[])
+#else
 int main(int argc, char *argv[])
+#endif
 {
-    if (argc < 2)
+    try
     {
-        std::cout << "Usage: " << argv[0] << " <mac>" << std::endl;
-        return 1;
-    }
-    boost::asio::io_service io;
-    awaker socket(io);
-    socket.async_awake(argv[1]);
-    io.run();
+        if (argc < 2)
+        {
+            std::cout << "Usage: " << argv[0] << " <mac>" << std::endl;
+            return 1;
+        }
+        boost::asio::io_service io;
+        awaker socket(io);
+        socket.async_awake(argv[1]);
+        io.run();
 
-    return 0;
+        return EXIT_SUCCESS;
+    }
+    catch (...)
+    {
+        std::cerr << "Error" << std::endl;
+    }
+    return EXIT_FAILURE;
 }

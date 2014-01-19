@@ -18,8 +18,6 @@
 #include <vector>
 #include <iterator>
 #include <boost/asio.hpp>
-#include <boost/asio/detail/handler_invoke_helpers.hpp>
-#include <boost/asio/detail/bind_handler.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
@@ -217,8 +215,7 @@ void basic_socket<Protocol>::process_burst(const boost::system::error_code& erro
 {
     if (error)
     {
-        asio_handler_invoke_helpers::invoke(
-            boost::asio::detail::bind_handler(handler, error));
+        handler(error);
     }
     else
     {
@@ -235,8 +232,7 @@ void basic_socket<Protocol>::process_burst(const boost::system::error_code& erro
         else
         {
             // We are (hopefully) done
-            asio_handler_invoke_helpers::invoke(
-                boost::asio::detail::bind_handler(handler, error));
+            handler(error);
         }
     }
 }
@@ -256,8 +252,7 @@ void basic_socket<Protocol>::async_retry(boost::shared_ptr<task> current_task,
     }
     else
     {
-        asio_handler_invoke_helpers::invoke(
-            boost::asio::detail::bind_handler(handler, error));
+        handler(error);
     }
 }
 

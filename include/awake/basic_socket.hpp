@@ -146,18 +146,9 @@ private:
 template <typename Handler>
 void invoke_handler(Handler handler, const boost::system::error_code& error)
 {
-    #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4172)
-#endif
-
      boost_asio_handler_invoke_helpers::invoke(
           boost::asio::detail::bind_handler(handler, error),
           handler);
-
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
 }
 
 template <typename Protocol>

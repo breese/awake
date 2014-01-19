@@ -22,13 +22,16 @@ cmake_minimum_required(VERSION 2.8)
 project(awake)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
+set(AWAKE_BUILD_DIR ${CMAKE_BINARY_DIR}/stage)
+set(LIBRARY_OUTPUT_PATH ${AWAKE_BUILD_DIR}/lib)
+set(EXECUTABLE_OUTPUT_PATH ${AWAKE_BUILD_DIR}/bin)
 
 ###############################################################################
 # Boost package
 ###############################################################################
 
 # FIXME: Probably ok to use older versions
-find_package(Boost 1.49.0 COMPONENTS thread system)
+find_package(Boost 1.49.0 COMPONENTS system)
 if (NOT ${Boost_FOUND})
   message(FATAL_ERROR "Boost not found (or too old)")
 endif()
@@ -39,16 +42,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES})
 # awake package
 ###############################################################################
 
-#set(AWAKE_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-
 include_directories(BEFORE include)
-#link_directories(${AWAKE_LIB_DIR})
-#set(LIBRARY_OUTPUT_PATH lib)
-#set(EXTRA_LIBS -lawake ${EXTRA_LIBS})
-
-#add_library(awake STATIC
-#  src/socket.cpp
-#)
 
 ###############################################################################
 # Example
@@ -59,7 +53,6 @@ add_executable(example1
 )
 
 add_dependencies(example1 awake)
-set_target_properties(example1 PROPERTIES RUNTIME_OUTPUT_DIRECTORY bin)
 target_link_libraries(example1 ${EXTRA_LIBS})
 
 add_executable(example2
@@ -67,5 +60,4 @@ add_executable(example2
 )
 
 add_dependencies(example2 awake)
-set_target_properties(example2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY bin)
 target_link_libraries(example2 ${EXTRA_LIBS})

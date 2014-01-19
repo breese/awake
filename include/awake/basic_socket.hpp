@@ -69,7 +69,10 @@ private:
         template <typename Handler>
         void async_wait(BOOST_ASIO_MOVE_ARG(Handler) handler);
 
-        const magic_packet_type& get_magic_packet() const;
+        const magic_packet_type& get_magic_packet() const
+        {
+            return magic_packet;
+        }
 
     private:
         unsigned int bursts;
@@ -140,6 +143,14 @@ private:
 // Implementation
 //-----------------------------------------------------------------------------
 
+template <typename Handler>
+void invoke_handler(Handler handler, const boost::system::error_code& error)
+{
+     boost_asio_handler_invoke_helpers::invoke(
+          boost::asio::detail::bind_handler(handler, error),
+          handler);
+}
+
 template <typename Protocol>
 basic_socket<Protocol>::basic_socket(boost::asio::io_service& io)
     : socket(io),
@@ -209,13 +220,13 @@ void basic_socket<Protocol>::async_send_burst(boost::shared_ptr<task> current_ta
 template <typename Protocol>
 template <typename Handler>
 void basic_socket<Protocol>::process_burst(const boost::system::error_code& error,
-                                           std::size_t bytes_transferred,
+                                           std::size_t /*bytes_transferred*/,
                                            boost::shared_ptr<task> current_task,
                                            Handler handler)
 {
     if (error)
     {
-        handler(error);
+        invoke_handler(BOOST_ASIO_MOVE_CAST(Handler)(handler), error);
     }
     else
     {
@@ -223,16 +234,16 @@ void basic_socket<Protocol>::process_burst(const boost::system::error_code& erro
 
         if (current_task->next_burst())
         {
-            async_send_burst(current_task, handler);
+            async_send_burst(current_task, BOOST_ASIO_MOVE_CAST(Handler)(handler));
         }
         else if (current_task->next_retry())
         {
-            async_retry(current_task, handler);
+            async_retry(current_task, BOOST_ASIO_MOVE_CAST(Handler)(handler));
         }
         else
         {
             // We are (hopefully) done
-            handler(error);
+            invoke_handler(BOOST_ASIO_MOVE_CAST(Handler)(handler), error);
         }
     }
 }
@@ -252,7 +263,7 @@ void basic_socket<Protocol>::async_retry(boost::shared_ptr<task> current_task,
     }
     else
     {
-        handler(error);
+        invoke_handler(BOOST_ASIO_MOVE_CAST(Handler)(handler), error);
     }
 }
 
@@ -267,7 +278,7 @@ basic_socket<Protocol>::task::task(boost::asio::io_service& io,
 {
     assert(std::distance(first, last) == mac_size);
     deadline = boost::get_system_time() + boost::posix_time::milliseconds(retry_delay);
-    std::fill_n(magic_packet, header_size, 0xFF);
+    std::fill(&magic_packet[0], &magic_packet[header_size], static_cast<char_type>(0xFF));
     for (unsigned int i = 0; i < mac_count; ++i)
     {
         std::copy(first, last, &magic_packet[header_size + i * mac_size]);
@@ -301,14 +312,7 @@ template <typename Protocol>
 template <typename Handler>
 void basic_socket<Protocol>::task::async_wait(BOOST_ASIO_MOVE_ARG(Handler) handler)
 {
-    timer.async_wait(handler);
-}
-
-template <typename Protocol>
-const typename basic_socket<Protocol>::magic_packet_type&
-basic_socket<Protocol>::task::get_magic_packet() const
-{
-    return magic_packet;
+    timer.async_wait(BOOST_ASIO_MOVE_CAST(Handler)(handler));
 }
 
 } // namespace awake

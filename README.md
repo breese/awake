@@ -28,7 +28,7 @@ int main()
   boost::asio::io_service io;
   awake::udp::socket wakeup(io);
   awake::udp::socket::mac_address_type address; // Must be initialized with the MAC address of the sleeping device
-  wakeup.async_awake(address, AwakeHandler); // Send the Wake-on-LAN packets asynchronously
+  wakeup.async_awake(address, &AwakeHandler); // Send the Wake-on-LAN packets asynchronously
   io.run();
   return 0;
 }

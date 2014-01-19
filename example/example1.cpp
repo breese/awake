@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     if (std::sscanf(argv[1], "%02x:%02x:%02x:%02x:%02x:%02x",
                     &address[0], &address[1], &address[2], &address[3], &address[4], &address[5]) == 6)
     {
-        awaker.async_awake(address, done);
+        awaker.async_awake(address, &done);
         io.run();
     }
     return 0;

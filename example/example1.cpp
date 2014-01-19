@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <cstdio> // std::sscanf
+#include <boost/array.hpp>
 #include <boost/asio/io_service.hpp>
 #include <awake/socket.hpp>
 

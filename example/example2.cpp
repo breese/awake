@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <cstdio> // std::sscanf
+#include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/bind/protect.hpp>
 #include <boost/asio.hpp>
